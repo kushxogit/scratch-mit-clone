@@ -69,7 +69,7 @@ export default function MidArea({
     document.querySelectorAll(`#${containerId} .graybox`).forEach((graybox) => {
       const inputs = graybox.querySelectorAll("input");
       inputs.forEach((input) => {
-        const n = 0; // Initialize n here
+        const n = 0; 
         if (input.type === "text") {
           if (input.id === "repeat") {
             n = input.value;
