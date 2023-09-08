@@ -3,7 +3,6 @@ import React, { useEffect, useRef, useState } from "react";
 export default function CatSprite({ inputValues }) {
   console.log("...temp", inputValues);
 
-
   const [message, setMessage] = useState("");
   const [showMessage, setShowMessage] = useState(false);
 
@@ -17,12 +16,11 @@ export default function CatSprite({ inputValues }) {
     const element = catRef.current;
 
     async function runAnimations() {
-      for (let i = 0; i < inputValues.length; i++) {
+      for (let i = 0; i < inputValues?.length; i++) {
         const key = inputValues[i];
         console.log("iterating thru ...", key.key);
 
         if (key.key.startsWith("movex") || key.key.startsWith("movey")) {
-          
           const increment = key.value;
           const isMoveX = key.key.startsWith("movex");
           const property = isMoveX ? "left" : "top";
@@ -32,43 +30,34 @@ export default function CatSprite({ inputValues }) {
 
           await animateMovement(property, startValue, targetValue);
         } else if (key.key.startsWith("turnanti")) {
-          
           angleRef.current -= key.value;
           element.style.transform = `rotate(${angleRef.current}deg) scale(${scaleRef.current})`;
         } else if (key.key.startsWith("turnclock")) {
-          
           angleRef.current += key.value;
           element.style.transform = `rotate(${angleRef.current}deg) scale(${scaleRef.current})`;
         } else if (key.key.startsWith("goto")) {
           const targetX = key.value;
 
-          
           const targetY = 0;
 
-          
           element.style.left = `${targetX}px`;
           element.style.top = `${targetY}px`;
 
-          
           leftRef.current = targetX;
           topRef.current = targetY;
         } else if (key.key.startsWith("changesize")) {
-          
           scaleRef.current += key.value / 100;
           element.style.transform = `rotate(${angleRef.current}deg) scale(${scaleRef.current})`;
         } else if (key.key.startsWith("setsize")) {
-        
           scaleRef.current = key.value / 100;
           element.style.transform = `rotate(${angleRef.current}deg) scale(${scaleRef.current})`;
         } else if (key.key.startsWith("wait")) {
           const waitTime = key.value * 1000;
           await new Promise((resolve) => setTimeout(resolve, waitTime));
         } else if (key.key.startsWith("speak")) {
-        
           const message = key.value;
           setMessage(message);
           setShowMessage(true);
-
 
           await new Promise((resolve) => setTimeout(resolve, 2000));
           setShowMessage(false);
@@ -88,7 +77,7 @@ export default function CatSprite({ inputValues }) {
             element.style[property] = `${newValue}px`;
             requestAnimationFrame(animate);
           } else {
-            resolve(); 
+            resolve();
           }
         };
 
@@ -296,16 +285,16 @@ export default function CatSprite({ inputValues }) {
             style={{
               position: "relative",
               left: `${leftRef.current + 100}px`,
-              top: `${topRef.current - 100}px`, 
-              backgroundColor: "#FFD6E1", 
+              top: `${topRef.current - 100}px`,
+              backgroundColor: "#FFD6E1",
               padding: "10px",
               borderRadius: "10px",
-              boxShadow: "0 8px 16px rgba(0, 0, 0, 0.6)", 
-              color: "#333", 
-              textShadow: "1px 1px 1px rgba(255, 255, 255, 0.5)", 
-              width: "150px", 
-              fontSize: "12px", 
-              fontWeight: "300", 
+              boxShadow: "0 8px 16px rgba(0, 0, 0, 0.6)",
+              color: "#333",
+              textShadow: "1px 1px 1px rgba(255, 255, 255, 0.5)",
+              width: "150px",
+              fontSize: "12px",
+              fontWeight: "300",
             }}
           >
             <p>{message}</p>

@@ -1,17 +1,22 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import { Droppable, Draggable } from "react-beautiful-dnd";
 import { getComponent } from "./getComp";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 
-export default function MidArea({ droppedItems, setInputValues, handleDelete }) {
+export default function MidArea({
+  containers,
+  setContainers,
+  handleDelete,
+  setInputValues,
+}) {
   const containerStyle = {
     backgroundColor: "#F0F0F0",
     padding: "20px",
     margin: "10px",
     borderRadius: "8px",
     boxShadow: "0 0 5px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1)",
-    width: "300px", 
+    width: "300px",
     minHeight: "200px",
     overflowY: "auto",
     display: "flex",
@@ -19,82 +24,90 @@ export default function MidArea({ droppedItems, setInputValues, handleDelete }) 
   };
 
   const buttonStyle = {
-    backgroundColor: "green", 
+    backgroundColor: "green",
     color: "white",
-    padding: "4px 8px", 
+    padding: "4px 8px",
     borderRadius: "4px",
     cursor: "pointer",
     boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2), 0 4px 8px rgba(0, 0, 0, 0.1)",
-    marginLeft: "8px", 
+    marginLeft: "8px",
   };
-
-
-  let newValues = [];
-
-  const handleRunClick = () => {
-    getInputValues();
-    setInputValues(newValues);
-
-    const executeComponentsSequentially = (index) => {
-      if (index < droppedItems.length) {
-        const item = droppedItems[index];
-        getComponent(item.split("-")[0]);
-
-        setTimeout(() => {
-          executeComponentsSequentially(index + 1);
-        }, 1000);
-      }
-    };
-    executeComponentsSequentially(0);
-  };
-
-  function getInputValues() {
-    var parentDiv = document.querySelector(".graybox");
-    const inputElements = parentDiv.querySelectorAll(
-      'input[type="text"], input[type="number"]'
-    );
-
-    var n = 0;
-    inputElements.forEach(function (inputElement, index) {
-      if (inputElement.type === "text") {
-        if (inputElement.id == "repeat") {
-          n = inputElement.value;
-        }
-
-        if (index > 1 && inputElements[index - 1].id == "repeat") {
-          for (let i = 0; i < n; i++) {
-            newValues.push({
-              key: `${inputElement.id}${i}`,
-              value: parseFloat(inputElement.value),
-            });
-          }
-        } else if (!isNaN(inputElement.value)) {
-          newValues.push({
-            key: `${inputElement.id}${index}`,
-            value: parseFloat(inputElement.value),
-          });
-        } else {
-          newValues.push({
-            key: `${inputElement.id}${index}`,
-            value: inputElement.value,
-          });
-        }
-      } else if (inputElement.type === "number") {
-        newValues.push({
-          key: `${inputElement.id}${index}`,
-          value: parseFloat(inputElement.value),
-        });
-      }
-    });
-  }
 
   const deleteButtonStyle = {
     color: "red",
     cursor: "pointer",
-    marginLeft: "auto", 
-    display: "flex", 
-    alignItems: "center", 
+    marginLeft: "auto",
+    display: "flex",
+    alignItems: "center",
   };
+
+  const addContainer = () => {
+    const newContainerId = `container-${containers.length + 1}`;
+    setContainers([...containers, { id: newContainerId, items: [] }]);
+  };
+
+  const [currentContainerId, setCurrentContainerId] = useState(null);
+
+  const [newValues, setNewValues] = useState({});
+
+  const handleRunClick = (containerId) => {
+    setCurrentContainerId(containerId);
+
+    if (!newValues[containerId]) {
+      newValues[containerId] = [];
+    }
+
+    getInputValues(containerId);
+    setInputValues(newValues[containerId]);
+  };
+
+  function getInputValues(containerId) {
+    console.log("containerId", `#${containerId}`);
+
+    newValues[containerId] = [];
+
+    document.querySelectorAll(`#${containerId} .graybox`).forEach((graybox) => {
+      const inputs = graybox.querySelectorAll("input");
+      inputs.forEach((input) => {
+        const n = 0; // Initialize n here
+        if (input.type === "text") {
+          if (input.id === "repeat") {
+            n = input.value;
+          }
+
+          if (input.type === "text" && input.id === "repeat") {
+            for (let i = 0; i < n; i++) {
+              newValues[containerId].push({
+                key: `${input.id}${i}`,
+                value: parseFloat(input.value),
+              });
+            }
+          } else if (!isNaN(input.value)) {
+            newValues[containerId].push({
+              key: `${input.id}`,
+              value: parseFloat(input.value),
+            });
+          } else {
+            newValues[containerId].push({
+              key: `${input.id}`,
+              value: input.value,
+            });
+          }
+        } else if (input.type === "number") {
+          newValues[containerId].push({
+            key: `${input.id}`,
+            value: parseFloat(input.value),
+          });
+        }
+      });
+    });
+
+    console.log(
+      "Input values for container",
+      containerId,
+      newValues[containerId]
+    );
+  }
 
   return (
     <div className="flex-1 h-full overflow-auto">
@@ -102,23 +115,34 @@ export default function MidArea({ droppedItems, setInputValues, handleDelete }) 
         {" "}
         {"Midarea"}{" "}
       </div>
+      {console.log(containers)}
+      <button style={buttonStyle} onClick={addContainer}>
+        Add Container
+      </button>
 
-      <Droppable droppableId="midarea" type="sidearea">
-        {(provided) => (
-          <ul
-            {...provided.droppableProps}
-            ref={provided.innerRef}
-            className="midarea"
-          >
-            <div className="graybox" style={containerStyle}>
-              <button style={buttonStyle} onClick={handleRunClick}>
+      {containers.map((container) => (
+        <Droppable
+          key={container.id}
+          droppableId={container.id}
+          type="sidearea"
+        >
+          {(provided) => (
+            <ul
+              id={container.id}
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+              style={containerStyle}
+            >
+              <button
+                style={buttonStyle}
+                onClick={() => handleRunClick(container.id)}
+              >
                 Run
               </button>
-              {droppedItems.map((item, index) => (
+              {container.items.map((item, index) => (
                 <Draggable key={item} draggableId={item} index={index}>
                   {(provided) => (
-                    
-                    <div className="dropped-item" style={{ display: "flex" }}>
+                    <div className="graybox" style={{ display: "flex" }}>
                       <div
                         ref={provided.innerRef}
                         {...provided.draggableProps}
@@ -129,7 +153,7 @@ export default function MidArea({ droppedItems, setInputValues, handleDelete }) 
                       </div>
                       <span
                         style={deleteButtonStyle}
-                        onClick={() => handleDelete(index)}
+                        onClick={() => handleDelete(container.id, index)}
                       >
                         <FontAwesomeIcon icon={faTrash} />
                       </span>
@@ -137,10 +161,10 @@ export default function MidArea({ droppedItems, setInputValues, handleDelete }) 
                   )}
                 </Draggable>
               ))}
-            </div>
-          </ul>
-        )}
-      </Droppable>
+            </ul>
+          )}
+        </Droppable>
+      ))}
     </div>
   );
 }

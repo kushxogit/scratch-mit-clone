@@ -13,7 +13,7 @@ export default function Sidebar() {
         {"Sidebar"}{" "}
       </div>
 
-      <Droppable droppableId="sidearea" type="sidearea">
+      <Droppable droppableId="container-1" type="sidearea">
         {(provided) => (
           <ul
             {...provided.droppableProps}
@@ -26,6 +26,7 @@ export default function Sidebar() {
                   key={`${item}-sideArea`}
                   draggableId={`${item}-sideArea`}
                   index={index}
+                  type="container-1"
                 >
                   {(provided) => (
                     <ul

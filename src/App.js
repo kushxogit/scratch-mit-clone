@@ -1,36 +1,49 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Sidebar from "./components/Sidebar";
 import MidArea from "./components/MidArea";
 import PreviewArea from "./components/PreviewArea";
 import { DragDropContext } from "react-beautiful-dnd";
-// import { getComponent } from "./components/getComp";
-// import { comp } from "./components/compName";
 
 export default function App() {
-  const [droppedItems, setDroppedItems] = useState([]);
+  const [containers, setContainers] = useState([
+    {
+      id: "container-1",
+      items: [],
+    },
+  ]);
+
   const [inputValues, setInputValues] = useState([]);
 
   const handleDragEnd = (result) => {
     if (!result.destination) return;
 
-    if (
-      result.source.droppableId === "sidearea" &&
-      result.destination.droppableId === "midarea"
-    ) {
-      const draggableId = result.draggableId.split("-")[0];
-      const counter = droppedItems.filter((item) =>
-        item.startsWith(draggableId)
-      ).length;
-      const updatedItem = `${draggableId}-${counter}`;
-      const updatedItems = [...droppedItems, updatedItem];
-      setDroppedItems(updatedItems);
-    }
+    const sourceContainerId = result.source.droppableId;
+    const destinationContainerId = result.destination.droppableId;
+    const draggableId = result.draggableId.split("-")[0];
+
+    const updatedContainers = containers.map((container) => {
+      if (container.id === destinationContainerId) {
+        return {
+          ...container,
+          items: [
+            ...container.items,
+            `${draggableId}-${container.items.length}`,
+          ],
+        };
+      }
+      return container;
+    });
+
+    setContainers(updatedContainers);
   };
 
-  const handleDelete = (index) => {
-    const updatedItems = [...droppedItems];
-    updatedItems.splice(index, 1);
-    setDroppedItems(updatedItems);
+  const handleDelete = (containerId, index) => {
+    const container = containers.find((c) => c.id === containerId);
+
+    if (container && container.items.length > index) {
+      container.items.splice(index, 1);
+      setContainers([...containers]);
+    }
   };
 
   return (
@@ -40,9 +53,10 @@ export default function App() {
           <DragDropContext onDragEnd={handleDragEnd}>
             <Sidebar />
             <MidArea
-              droppedItems={droppedItems}
+              containers={containers}
+              setContainers={setContainers}
+              handleDelete={handleDelete}
               setInputValues={setInputValues}
-              handleDelete={handleDelete} 
             />
           </DragDropContext>
         </div>
